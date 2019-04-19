@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"net/http"
+	"os"
 )
 
 func main() {
@@ -26,8 +28,25 @@ func startDownloads(targets []string, dest string, maxThreads int, maxSpeedBytes
 
 		fmt.Printf("SIZE: %v bytes\n", resp.ContentLength)
 
-		// io.
+		// https://medium.com/learning-the-go-programming-language/streaming-io-in-go-d93507931185
+		// https://github.com/cavaliercoder/grab
+		// Здесь блоками скачиваем файл
+		chunkSize := 1024
 
-		// resp.Body
+		p := make([]byte, chunkSize)
+
+		for {
+			n, err := reader.Read(p)
+			if err != nil {
+				if err == io.EOF {
+					fmt.Println(string(p[:n])) //should handle any remainding bytes.
+					break
+				}
+				fmt.Println(err)
+				os.Exit(1)
+			}
+			fmt.Println(string(p[:n]))
+		}
+
 	}
 }
