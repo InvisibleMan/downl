@@ -30,6 +30,10 @@ func startDownloads(targets []string, dest string, maxThreads int, maxSpeedBytes
 
 		// https://medium.com/learning-the-go-programming-language/streaming-io-in-go-d93507931185
 		// https://github.com/cavaliercoder/grab
+		// https://stackoverflow.com/questions/30532886/golang-dynamic-progressbar
+		// https://stackoverflow.com/questions/44318345/can-i-increase-golangs-http-stream-chunk-size
+		// https://www.reddit.com/r/golang/comments/4xtsbn/help_how_to_read_files_in_blocks/
+		// https://gobyexample.com/reading-files
 		// Здесь блоками скачиваем файл
 		chunkSize := 1024
 

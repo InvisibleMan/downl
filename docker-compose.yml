@@ -1,0 +1,14 @@
+version: '3'
+
+services:
+  nginx:
+    image: 'nginx:1.15.12-alpine'
+    ports:
+      - '8083:80'
+    volumes:
+      - ./fixtures:/usr/share/nginx/html:ro
+#     networks:
+#       - dawnl
+# networks:
+#   dawnl:
+
