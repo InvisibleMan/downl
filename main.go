@@ -5,14 +5,15 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"time"
 )
 
 func main() {
 	fmt.Println("Hello Download Master")
 
 	var files = []string{
-		"http://192.168.1.100/test_file1.mp4",
-		"http://192.168.1.100/test_file2.mp4"}
+		"http://localhost:8083/file1.dat",
+		"http://localhost:8083/file2.dat"}
 
 	var dest = "./"
 	var maxThreads = 2
@@ -35,21 +36,23 @@ func startDownloads(targets []string, dest string, maxThreads int, maxSpeedBytes
 		// https://www.reddit.com/r/golang/comments/4xtsbn/help_how_to_read_files_in_blocks/
 		// https://gobyexample.com/reading-files
 		// Здесь блоками скачиваем файл
-		chunkSize := 1024
+		chunkSize := 1024 * 1024 // 1 Mbytes
 
 		p := make([]byte, chunkSize)
+		reader := resp.Body
 
 		for {
-			n, err := reader.Read(p)
+			_, err := reader.Read(p)
 			if err != nil {
 				if err == io.EOF {
-					fmt.Println(string(p[:n])) //should handle any remainding bytes.
+					fmt.Println("Read chunk...") //should handle any remainding bytes.
 					break
 				}
 				fmt.Println(err)
 				os.Exit(1)
 			}
-			fmt.Println(string(p[:n]))
+			fmt.Println("Read chunk...")
+			time.Sleep(100 * time.Millisecond)
 		}
 
 	}
