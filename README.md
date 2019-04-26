@@ -10,8 +10,10 @@
 * Ограничение на скорость
 * 
 
-
 ## Установка
 * Разместить файл file1.dat в директории fixtures
 * Запустить docker: `$ docker-compose up`
 * Проверить работу докера: `$ wget localhost:8083/file1.data`
+
+## Запуск
+* `$ ./downl http://localhost:8083/file1.dat http://localhost:8083/file2.dat`

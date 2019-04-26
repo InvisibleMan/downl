@@ -11,13 +11,30 @@ import (
 func main() {
 	fmt.Println("Hello Download Master")
 
-	var files = []string{
-		"http://localhost:8083/file1.dat",
-		"http://localhost:8083/file2.dat"}
+	var files = os.Args
+
+	if len(files) < 2 {
+		fmt.Println("Noting download. Bye")
+		os.Exit(0)
+		return
+	}
+
+	fmt.Println("Start download files:")
+	for _, file := range files[1:] {
+		fmt.Printf(" * %v\n", file)
+	}
 
 	var dest = "./"
 	var maxThreads = 2
 	var maxSpeed = 500 * 1024
+
+	return
+
+	// https: //gobyexample.com/tickers
+	ticker := time.NewTicker(500 * time.Millisecond)
+	for i := 0; i < maxThreads; i++ {
+
+	}
 
 	startDownloads(files, dest, maxThreads, maxSpeed)
 }
@@ -37,7 +54,6 @@ func startDownloads(targets []string, dest string, maxThreads int, maxSpeedBytes
 		// https://gobyexample.com/reading-files
 		// Здесь блоками скачиваем файл
 		chunkSize := 1024 * 1024 // 1 Mbytes
-
 		p := make([]byte, chunkSize)
 		reader := resp.Body
 
