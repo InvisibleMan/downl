@@ -5,38 +5,95 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"runtime"
+	"strconv"
 	"time"
 )
+
+func max(l, r int) int {
+	if l > r {
+		return l
+	}
+	return r
+}
 
 func main() {
 	fmt.Println("Hello Download Master")
 
-	var files = os.Args
-
-	if len(files) < 2 {
+	if len(os.Args) < 3 {
 		fmt.Println("Noting download. Bye")
 		os.Exit(0)
 		return
 	}
 
-	fmt.Println("Start download files:")
-	for _, file := range files[1:] {
-		fmt.Printf(" * %v\n", file)
+	var maxSpeed = 0
+
+	maxSpeed, err := strconv.Atoi(os.Args[1])
+	if err != nil {
+		fmt.Println("Wrong value of MaxSpeed. Bye")
+		os.Exit(0)
+		return
 	}
 
-	var dest = "./"
-	var maxThreads = 2
-	var maxSpeed = 500 * 1024
+	maxSpeed = max(200, maxSpeed) * 1024
+	// var dest = "./"
+	// var maxThreads = 2
+
+	var COUNTDOWN = 20                // millisecons
+	var defaultChunkSize int64 = 4096 // 4KB
+
+	// https: //gobyexample.com/tickers
+	ticker := time.NewTicker(time.Duration(COUNTDOWN) * time.Millisecond)
+	chunks := make(chan int, 1)
+
+	fmt.Println("Start download files:")
+	for _, file := range os.Args[2:] {
+		fmt.Printf(" * %v\n", file)
+		go startSingleDownload(file, chunks, defaultChunkSize)
+	}
+
+	for _ = range ticker.C {
+		chunks <- 1
+		// fmt.Println("Tick at", t)
+	}
 
 	return
 
-	// https: //gobyexample.com/tickers
-	ticker := time.NewTicker(500 * time.Millisecond)
-	for i := 0; i < maxThreads; i++ {
+	// for i := 0; i < maxThreads; i++ {
+	// }
 
+	// startDownloads(files, dest, maxThreads, maxSpeed)
+}
+
+func startSingleDownload(file string, chunks <-chan int, chunkSize int64) {
+	resp, err := http.Get(file)
+	if err == nil {
+		defer resp.Body.Close()
+	} else {
+		return
 	}
 
-	startDownloads(files, dest, maxThreads, maxSpeed)
+	fmt.Printf("Start dowload file: '%v'. With size: %v bytes\n", file, resp.ContentLength)
+	p := make([]byte, chunkSize)
+	reader := resp.Body
+	var readed int64
+	var fullSize int64 = resp.ContentLength
+
+	for {
+		<-chunks
+		_, err := reader.Read(p)
+		if err != nil {
+			if err == io.EOF {
+				fmt.Printf("Final read chunk. File: '%v' \n", file)
+				return
+			}
+			fmt.Println(err)
+		}
+		readed += chunkSize
+		persents := readed * 100 / fullSize
+		fmt.Printf("Read chunk. File: '%v'. (%v %%)\n", file, persents)
+		runtime.Gosched()
+	}
 }
 
 func startDownloads(targets []string, dest string, maxThreads int, maxSpeedBytes int) {
@@ -67,6 +124,7 @@ func startDownloads(targets []string, dest string, maxThreads int, maxSpeedBytes
 				fmt.Println(err)
 				os.Exit(1)
 			}
+
 			fmt.Println("Read chunk...")
 			time.Sleep(100 * time.Millisecond)
 		}
