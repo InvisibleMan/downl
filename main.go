@@ -1,13 +1,13 @@
 package main
 
 import (
-	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"runtime"
 	"strconv"
 	"time"
+	"log"
 )
 
 func max(l, r int) int {
@@ -18,10 +18,13 @@ func max(l, r int) int {
 }
 
 func main() {
-	fmt.Println("Hello Download Master")
+	log.Printf(
+        "Starting the downloader. Version: %s (commit: %s, build time: %s).",
+        Version, Commit, BuildTime,
+    )
 
 	if len(os.Args) < 3 {
-		fmt.Println("Noting download. Bye")
+		log.Println("Noting download. Bye")
 		os.Exit(0)
 		return
 	}
@@ -30,7 +33,7 @@ func main() {
 
 	maxSpeed, err := strconv.Atoi(os.Args[1])
 	if err != nil {
-		fmt.Println("Wrong value of MaxSpeed. Bye")
+		log.Println("Wrong value of MaxSpeed. Bye")
 		os.Exit(0)
 		return
 	}
@@ -46,15 +49,15 @@ func main() {
 	ticker := time.NewTicker(time.Duration(COUNTDOWN) * time.Millisecond)
 	chunks := make(chan int, 1)
 
-	fmt.Println("Start download files:")
+	log.Println("Start download files:")
 	for _, file := range os.Args[2:] {
-		fmt.Printf(" * %v\n", file)
+		log.Printf(" * %v\n", file)
 		go startSingleDownload(file, chunks, defaultChunkSize)
 	}
 
 	for _ = range ticker.C {
 		chunks <- 1
-		// fmt.Println("Tick at", t)
+		// log.Println("Tick at", t)
 	}
 
 	return
@@ -73,7 +76,7 @@ func startSingleDownload(file string, chunks <-chan int, chunkSize int64) {
 		return
 	}
 
-	fmt.Printf("Start dowload file: '%v'. With size: %v bytes\n", file, resp.ContentLength)
+	log.Printf("Start dowload file: '%v'. With size: %v bytes\n", file, resp.ContentLength)
 	p := make([]byte, chunkSize)
 	reader := resp.Body
 	var readed int64
@@ -84,14 +87,14 @@ func startSingleDownload(file string, chunks <-chan int, chunkSize int64) {
 		_, err := reader.Read(p)
 		if err != nil {
 			if err == io.EOF {
-				fmt.Printf("Final read chunk. File: '%v' \n", file)
+				log.Printf("Final read chunk. File: '%v' \n", file)
 				return
 			}
-			fmt.Println(err)
+			log.Println(err)
 		}
 		readed += chunkSize
 		persents := readed * 100 / fullSize
-		fmt.Printf("Read chunk. File: '%v'. (%v %%)\n", file, persents)
+		log.Printf("Read chunk. File: '%v'. (%v %%)\n", file, persents)
 		runtime.Gosched()
 	}
 }
@@ -101,7 +104,7 @@ func startDownloads(targets []string, dest string, maxThreads int, maxSpeedBytes
 	if err == nil {
 		defer resp.Body.Close()
 
-		fmt.Printf("SIZE: %v bytes\n", resp.ContentLength)
+		log.Printf("SIZE: %v bytes\n", resp.ContentLength)
 
 		// https://medium.com/learning-the-go-programming-language/streaming-io-in-go-d93507931185
 		// https://github.com/cavaliercoder/grab
@@ -118,14 +121,14 @@ func startDownloads(targets []string, dest string, maxThreads int, maxSpeedBytes
 			_, err := reader.Read(p)
 			if err != nil {
 				if err == io.EOF {
-					fmt.Println("Read chunk...") //should handle any remainding bytes.
+					log.Println("Read chunk...") //should handle any remainding bytes.
 					break
 				}
-				fmt.Println(err)
+				log.Println(err)
 				os.Exit(1)
 			}
 
-			fmt.Println("Read chunk...")
+			log.Println("Read chunk...")
 			time.Sleep(100 * time.Millisecond)
 		}
 
