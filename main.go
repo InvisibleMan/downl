@@ -18,8 +18,23 @@ func main() {
 		return
 	}
 
-	endEvents := make(chan int)
-	startDownloads(params.Targets, params.MaxSpeed, endEvents)
+	tp := TaskProcessor{Speed: params.MaxSpeed, Threads: 2}
+	tp.Download(params.Targets)
 
-	<-endEvents
+	// startDownloads(params.Targets, params.MaxSpeed, endEvents)
+
+	// endEvents := make(chan int)
+	// <-endEvents
 }
+
+// Useful links
+
+// https://medium.com/learning-the-go-programming-language/streaming-io-in-go-d93507931185
+// https://github.com/cavaliercoder/grab
+
+// https://stackoverflow.com/questions/30532886/golang-dynamic-progressbar
+// https://github.com/gosuri/uiprogress
+
+// https://stackoverflow.com/questions/44318345/can-i-increase-golangs-http-stream-chunk-size
+// https://www.reddit.com/r/golang/comments/4xtsbn/help_how_to_read_files_in_blocks/
+// https://gobyexample.com/reading-files

@@ -25,7 +25,7 @@ func GetInParams() (*InParams, error) {
 		return nil, errors.New("Noting download")
 	}
 
-	var maxSpeed = 0
+	var maxSpeed int
 
 	maxSpeed, err := strconv.Atoi(os.Args[1])
 	if err != nil {
@@ -33,10 +33,10 @@ func GetInParams() (*InParams, error) {
 		return nil, errors.New("Wrong value of MaxSpeed")
 	}
 
-	maxSpeed = max(200, maxSpeed) * 1024
+	maxSpeed = max(1, maxSpeed)
 
 	return &InParams{
 		MaxSpeed: maxSpeed,
-		Targets: os.Args[1:]
+		Targets:  os.Args[1:],
 	}, nil
 }

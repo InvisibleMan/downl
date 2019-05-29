@@ -18,5 +18,9 @@ run: build
 server:
 	docker-compose up
 
+down:
+	./${APP} 10 http://localhost:8083/fast/file.dat http://localhost:8083/slow/file.dat
+
+
 test:
 	go test -v -race ./...
