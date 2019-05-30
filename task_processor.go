@@ -15,24 +15,25 @@ var CHUNK_SIZE int = 4 * KB // 4KB
 type TaskProcessor struct {
 	Speed   int // max speed limit in KB
 	Threads int // max concurent downloads
+
+	sync.WaitGroup
+
 	// Destination
 	tasks             chan string
-	wg                sync.WaitGroup
 	used              chan int
 	lastIntervalCount int
 	totalCount        int
 }
 
 func (tp *TaskProcessor) Download(targets []string) {
-	tp.wg = sync.WaitGroup{}
-	tp.wg.Add(len(targets))
+	tp.Add(len(targets))
 	tp.tasks = make(chan string, tp.Threads)
 
 	go tp.runWorkers()
 	go tp.putTasks(targets)
 	go printStatus(tp)
 
-	tp.wg.Wait()
+	tp.Wait()
 }
 
 func (tp *TaskProcessor) putTasks(targets []string) {
@@ -73,18 +74,14 @@ func (tp *TaskProcessor) startChunksQueue() <-chan int {
 	return queueChunks
 }
 
-func (tp *TaskProcessor) doneTarget() {
-	tp.wg.Done()
-}
-
 func (tp *TaskProcessor) downloadTarget(file string, chunks <-chan int, chunksUsed chan int) {
 	resp, err := http.Get(file)
-	if err == nil {
-		defer resp.Body.Close()
-	} else {
-		tp.doneTarget()
+	if err != nil {
+		tp.Done()
 		return
 	}
+
+	defer resp.Body.Close()
 
 	log.Printf("Start dowload file: '%v'. With size: %v bytes\n", file, resp.ContentLength)
 	p := make([]byte, CHUNK_SIZE)
@@ -101,7 +98,7 @@ func (tp *TaskProcessor) downloadTarget(file string, chunks <-chan int, chunksUs
 		if err != nil {
 			if err == io.EOF {
 				log.Printf("Final read chunk. File: '%v' \n", file)
-				tp.doneTarget()
+				tp.Done()
 				return
 			}
 			log.Println(err)
