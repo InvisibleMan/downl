@@ -6,5 +6,5 @@ var (
 	// Commit is a last commit hash at the moment when the binary was built
 	Commit = "unset"
 	// Version is a semantic version of current build
-	Version = "0.2.0"
+	Version = "0.3.0"
 )

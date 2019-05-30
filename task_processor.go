@@ -16,8 +16,11 @@ type TaskProcessor struct {
 	Speed   int // max speed limit in KB
 	Threads int // max concurent downloads
 	// Destination
-	tasks chan string
-	wg    sync.WaitGroup
+	tasks             chan string
+	wg                sync.WaitGroup
+	used              chan int
+	lastIntervalCount int
+	totalCount        int
 }
 
 func (tp *TaskProcessor) Download(targets []string) {
@@ -27,6 +30,7 @@ func (tp *TaskProcessor) Download(targets []string) {
 
 	go tp.runWorkers()
 	go tp.putTasks(targets)
+	go printStatus(tp)
 
 	tp.wg.Wait()
 }
@@ -40,15 +44,16 @@ func (tp *TaskProcessor) putTasks(targets []string) {
 }
 
 func (tp *TaskProcessor) runWorkers() {
-	chanks := tp.startChanksQueue()
+	chunks := tp.startChunksQueue()
+	usedChunks := tp.processUsedChunks()
 
 	log.Println("Start download files:")
 	for task := range tp.tasks {
-		go tp.downloadTarget(task, chanks)
+		go tp.downloadTarget(task, chunks, usedChunks)
 	}
 }
 
-func (tp *TaskProcessor) startChanksQueue() <-chan int {
+func (tp *TaskProcessor) startChunksQueue() <-chan int {
 	var countdown = int(time.Second) / (tp.Speed * KB / CHUNK_SIZE)
 
 	log.Printf("Duration ONE SECOND: '%d'\n", time.Duration(1*time.Second))
@@ -72,7 +77,7 @@ func (tp *TaskProcessor) doneTarget() {
 	tp.wg.Done()
 }
 
-func (tp *TaskProcessor) downloadTarget(file string, chunks <-chan int) {
+func (tp *TaskProcessor) downloadTarget(file string, chunks <-chan int, chunksUsed chan int) {
 	resp, err := http.Get(file)
 	if err == nil {
 		defer resp.Body.Close()
@@ -101,12 +106,47 @@ func (tp *TaskProcessor) downloadTarget(file string, chunks <-chan int) {
 			}
 			log.Println(err)
 		}
+
+		chunksUsed <- CHUNK_SIZE
 		read += int64(CHUNK_SIZE)
 		percent := read * 100 / fullSize
 		if percent-lastPercent > diffPercent {
-			log.Printf("Read chunk. File: '%v'. (%v %%)\n", file, percent)
+			// log.Printf("Read chunk. File: '%v'. (%v %%)\n", file, percent)
 			lastPercent = percent
 		}
 		runtime.Gosched()
 	}
+}
+
+func (tp *TaskProcessor) processUsedChunks() chan int {
+	tp.used = make(chan int)
+
+	go func() {
+		for chunk := range tp.used {
+			tp.addDownloadCount(chunk)
+		}
+	}()
+
+	return tp.used
+}
+
+func (tp *TaskProcessor) addDownloadCount(chunk int) {
+	// sync.Mutex
+	tp.lastIntervalCount = tp.lastIntervalCount + chunk
+	tp.totalCount = tp.totalCount + chunk
+}
+
+func printStatus(tp *TaskProcessor) {
+
+	ticker := time.NewTicker(1000 * time.Millisecond)
+	go func() {
+		prevCount := 0
+		for _ = range ticker.C {
+			log.Printf("Current download speed: %d KB\n", (tp.totalCount-prevCount)/KB)
+			prevCount = tp.totalCount
+		}
+	}()
+
+	// total download size
+	// current speed = count for interval / interval
 }
