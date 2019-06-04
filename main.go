@@ -5,6 +5,10 @@ import (
 	"os"
 )
 
+type Presenter interface {
+	Show(events map[*Task]TaskEvent)
+}
+
 func main() {
 	log.Printf(
 		"Starting the downloader. Version: %s (commit: %s, build time: %s).",
@@ -18,13 +22,9 @@ func main() {
 		return
 	}
 
-	tp := TaskProcessor{Speed: params.MaxSpeed, Threads: 2}
+	tp := TaskProcessorNew(params.MaxSpeed, 2)
+	tp.SetPresenter(&ProgresBarPresenter{}, 500)
 	tp.Download(params.Targets)
-
-	// startDownloads(params.Targets, params.MaxSpeed, endEvents)
-
-	// endEvents := make(chan int)
-	// <-endEvents
 }
 
 // Useful links

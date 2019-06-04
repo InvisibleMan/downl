@@ -37,5 +37,5 @@ func GetInParams() (*InParams, error) {
 
 	return &InParams{
 		MaxSpeed: maxSpeed,
-		Targets:  os.Args[1:]}, nil
+		Targets:  os.Args[2:]}, nil
 }
