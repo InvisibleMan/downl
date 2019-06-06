@@ -23,13 +23,13 @@ func main() {
 	}
 
 	tp := TaskProcessorNew(params.MaxSpeed, 2)
-	tp.SetPresenter(&ProgresBarPresenter{}, 500)
+	tp.SetPresenter(NewProgresBarPresenter(), 500)
 	tp.Download(params.Targets)
 }
 
 // Useful links
 
-// https://medium.com/learning-the-go-programming-language/streaming-io-in-go-d93507931185
+// https://github.com/cheggaaa/pb
 // https://github.com/cavaliercoder/grab
 
 // https://stackoverflow.com/questions/30532886/golang-dynamic-progressbar

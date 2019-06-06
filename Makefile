@@ -19,7 +19,7 @@ server:
 	docker-compose up
 
 down:
-	./${APP} 10 http://localhost:8083/fast/file.dat http://localhost:8083/slow/file.dat
+	./${APP} 500 http://localhost:8083/fast/file.dat http://localhost:8083/slow/file.dat
 
 
 test:

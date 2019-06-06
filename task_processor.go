@@ -35,6 +35,14 @@ type TaskProcessor struct {
 	LastEvents map[*Task]TaskEvent
 }
 
+func (e *TaskEvent) TotalKB() int {
+	return int(e.TotalSize / int64(KB))
+}
+
+func (e *TaskEvent) CurrentKB() int {
+	return int(e.CurrentSize / int64(KB))
+}
+
 func TaskProcessorNew(maxSpeed int, maxThreads int) *TaskProcessor {
 	tp := TaskProcessor{Speed: maxSpeed, Threads: maxThreads}
 
