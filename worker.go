@@ -16,9 +16,10 @@ func NewWorker(chunks <-chan int, events chan TaskEvent) *Worker {
 	return &Worker{Chunks: chunks, Events: events}
 }
 
-func (w *Worker) Run(tasks chan *Task) {
+func (w *Worker) Run(tasks chan *Task, outTasks chan *Task) {
 	for t := range tasks {
 		w.StartDownload(t)
+		outTasks <- t
 	}
 }
 

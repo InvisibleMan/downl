@@ -7,6 +7,7 @@ import (
 
 type Presenter interface {
 	Show(events map[*Task]TaskEvent)
+	Stop()
 }
 
 func main() {
@@ -23,6 +24,7 @@ func main() {
 	}
 
 	tp := TaskProcessorNew(params.MaxSpeed, 2)
+	// tp.SetPresenter(&TextLogPresenter{}, 500)
 	tp.SetPresenter(NewProgresBarPresenter(), 500)
 	tp.Download(params.Targets)
 }
