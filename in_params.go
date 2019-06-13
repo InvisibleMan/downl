@@ -8,8 +8,9 @@ import (
 )
 
 type InParams struct {
-	MaxSpeed int      // in KB/s
-	Targets  []string // urls for files downloads
+	DowloadPath string   //path to store
+	MaxSpeed    int      // in KB/s
+	Targets     []string // urls for files downloads
 }
 
 func max(l, r int) int {
@@ -20,7 +21,7 @@ func max(l, r int) int {
 }
 
 func GetInParams() (*InParams, error) {
-	if len(os.Args) < 3 {
+	if len(os.Args) < 4 {
 		log.Println("Noting download. Bye")
 		return nil, errors.New("Noting download")
 	}
@@ -35,7 +36,19 @@ func GetInParams() (*InParams, error) {
 
 	maxSpeed = max(1, maxSpeed)
 
+	var dowloadPath = os.Args[2]
+
+	fi, err := os.Stat(dowloadPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if !fi.IsDir() {
+		return nil, errors.New("Download path is not Dir")
+	}
+
 	return &InParams{
-		MaxSpeed: maxSpeed,
-		Targets:  os.Args[2:]}, nil
+		DowloadPath: fi.Name(),
+		MaxSpeed:    maxSpeed,
+		Targets:     os.Args[2:]}, nil
 }

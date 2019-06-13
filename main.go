@@ -23,6 +23,8 @@ func main() {
 		return
 	}
 
+	log.Printf("Dowload path is: %s \n", params.DowloadPath)
+
 	tp := TaskProcessorNew(params.MaxSpeed, 2)
 	// tp.SetPresenter(&TextLogPresenter{}, 500)
 	tp.SetPresenter(NewProgresBarPresenter(), 500)
