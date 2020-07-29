@@ -27,12 +27,11 @@ func (w *Worker) StartDownload(t *Task) {
 	url := t.Url
 
 	resp, err := http.Get(url)
-	if err == nil {
-		defer resp.Body.Close()
-	} else {
+	if err != nil {
 		w.Events <- TaskEvent{Task: t, IsFinish: true}
 		return
 	}
+	defer resp.Body.Close()
 
 	p := make([]byte, CHUNK_SIZE)
 	reader := resp.Body
